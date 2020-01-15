@@ -1,0 +1,43 @@
+8 Last Digit of the Sum of Squares of Fibonacci Numbers Problem Description Task. 
+Compute the last digit of F2 0 + F2 1 +···+ F2 n. 
+Input Format. Integer n. Constraints. 0 ≤ n ≤ 1014.
+Output Format. The last digit of F2 0 + F2 1 +···+ F2 n.
+Sample 1. Input: 7 Output: 3
+F2 0 + F2 1 +···+ F2 7 = 0 + 1 + 1 + 4 + 9 + 25 + 64 + 169 = 273.
+Sample 2. Input: 73 Output: 1
+F2 0 +···+ F2 73 = 1052478208141359608061842155201. 
+Sample 3. Input: 1234567890 Output: 0
+
+# Uses python3
+import sys
+
+def fibonacci_sum_squares(n):
+    list1=[0,1]
+    list2=[]
+    list3=[]
+    sum=0
+    if n <= 1:
+        return n
+    p=n//60
+    t=n%60
+    for r in range(1,60):
+        m=list1[-1] + list1[-2]
+        list1.append((m)%10)
+     
+    for r in list1:
+        list3.append((r*r)%10)
+    for r in list3:
+        sum=sum+r
+        list2.append(sum%10)
+    return (p*sum+list2[t])%10
+    
+    
+    
+
+
+if __name__ == '__main__':
+    input = sys.stdin.read()
+    n = int(input)
+    print(fibonacci_sum_squares(n))    
+
+
