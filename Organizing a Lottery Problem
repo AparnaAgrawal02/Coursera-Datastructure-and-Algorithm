@@ -26,7 +26,56 @@ Output: 0 0 1
 import sys
 import random
 
-def partition3(a, l, r):
+def fast_count_segments(starts, ends, points):
+    cnt = [0] * len(points)
+    LEFT = 1
+    POINT = 2
+    RIGHT = 3
+    count=0
+    a=3
+    starts_l = [LEFT] * len(starts)
+    ends_r = [RIGHT] * len(ends)
+    points_p = [POINT] * len(points)
+            
+    pairs_number = points + ends + starts
+    pairs_letter = points_p + ends_r + starts_l
+   
+    
+
+    randomized_quick_sort(pairs_number, pairs_letter, 0, len(pairs_number) - 1)
+    for i in range(1,len(pairs_number)):
+        if pairs_number[i-1]==pairs_number[i]:
+            count+=1
+        if pairs_number[i-1]!=pairs_number[i] and count!=0:
+            a=i-1-count
+            randomized_quick_sort( pairs_letter,pairs_number, a,i-1)
+            count=0
+        if i==len(pairs_number) - 1 and count!=0:
+            a=i-count
+            randomized_quick_sort( pairs_letter,pairs_number, a,i)
+            count=0
+        
+            
+    count_left = 0
+
+    point_counts = {}
+    for p in points:
+        point_counts[p] = 0
+
+    for i in range(len(pairs_number)):
+        if pairs_letter[i] == LEFT:
+            count_left += 1
+        elif pairs_letter[i] == RIGHT:
+            count_left -= 1
+        elif pairs_letter[i] == POINT:
+            if point_counts[pairs_number[i]] == 0:
+                point_counts[pairs_number[i]] += count_left
+
+    for i in range(len(points)):
+        cnt[i] = point_counts[points[i]]
+
+    return cnt
+def partition3(a,b, l, r):
     x=a[l]
     j=l
     k=l
@@ -35,60 +84,39 @@ def partition3(a, l, r):
             j+=1
 
             a[i],a[j] = a[j],a[i]
+            b[i],b[j] = b[j],b[i]
             if k>=j:
                 k+=1
                 a[i],a[k]=a[k],a[i]
+                b[i],b[k] = b[k],b[i]
             else:
                 k+=1
 
         elif a[i]==x:
             k=k+1
             a[i],a[k]=a[k],a[i]
+            b[i],b[k] = b[k],b[i]
+            
+    a[l], a[j] = a[j], a[l] 
+    b[l],b[j] = b[j],b[l]
 
-    a[l], a[j] = a[j], a[l]       
 
     return [j , k]    
 
-def randomized_quick_sort(a, l, r):
+def randomized_quick_sort(a,b, l, r):
     m=[]
     if l >= r:
         return
     k = random.randint(l, r)
     a[l], a[k] = a[k], a[l]
+    b[l],b[k] = b[k],b[l]
     #use partition3
-    m = partition3(a, l, r)
-    randomized_quick_sort(a, l, m[0]- 1)
-    randomized_quick_sort(a, m[1] + 1, r)
+    m = partition3(a,b, l, r)
+    randomized_quick_sort(a,b, l, m[0]- 1)
+    randomized_quick_sort(a,b, m[1] + 1, r)
 
-
-def fast_count_segments(starts, ends, points):
-    cnt = [0] * len(points)
     
-    a=0
-    temp={}
-    ray=[]
-    ray=points+starts+ends
-    for r in ray:
-        if ray.index(r)<len(points):
-            temp[r]='p'
-        elif ray.index(r)<len(points)+len(starts):
-            temp[r]='s'
-        elif ray.index(r)<len(ray):
-            temp[r]='e'
     
-
-    randomized_quick_sort(ray,0,len(ray)-1)
-    for i in ray:
-        if temp[i]=='s':
-            a+=1
-        if temp[i]=='e':
-            a-=1
-        if temp[i]=='p':
-            cnt[points.index(i)]=a
-    return cnt        
-    
-        
-
 if __name__ == '__main__':
     input = sys.stdin.read()
     data = list(map(int, input.split()))
@@ -100,4 +128,7 @@ if __name__ == '__main__':
     #use fast_count_segments
     cnt = fast_count_segments(starts, ends, points)
     for x in cnt:
-        print(x, end=' ')
+        print(x, end=' ')  
+
+    
+
