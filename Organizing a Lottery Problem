@@ -1,0 +1,103 @@
+5 Organizing a Lottery Problem 
+Introduction You are organizing an online lottery. To participate, a person bets on a single integer. You then draw several ranges of consecutive integers at random.
+A participant’s payoff then is proportional to the number of ranges that contain the participant’s number minus the number of ranges that does not contain it. 
+You need an efficient algorithm for computing the payoffs for all participants. A naive way to do this is to simply scan, for all participants, the list of all ranges.
+However, you lottery is very popular: you have thousands of participants and thousands of ranges. For this reason, you cannot afford a slow naive algorithm.
+Problem Description Task. You are given a set of points on a line and a set of segments on a line. The goal is to compute, for each point, the number of segments that contain this point. 
+Input Format. The first line contains two non-negative integers s and p defining the number of segments and the number of points on a line, respectively. 
+The next s lines contain two integers ai,bi defining the i-th segment [ai,bi]. The next line contains p integers defining points x1,x2,...,xp. 
+Constraints. 1 ≤ s,p ≤ 50000; −108 ≤ ai ≤ bi ≤ 108 for all 0 ≤ i < s; −108 ≤ xj ≤ 108 for all 0 ≤ j < p.
+Output Format. Output p non-negative integers k0,k1,...,kp−1 where ki is the number of segments which contain xi. More formally, ki = |{j: aj ≤ xi ≤ bj}|.
+Sample 1. 
+Input:
+2 3 
+0 5 
+7 10 
+1 6 11 
+Output: 1 0 0 
+Here, we have two segments and three points. The first point lies only in the first segment while the remaining two points are outside of all the given segments.
+Sample 2. 
+Input: 
+ 1 3 
+-10 10 
+-100 100 0 
+Output: 0 0 1
+# Uses python3
+import sys
+import random
+
+def partition3(a, l, r):
+    x=a[l]
+    j=l
+    k=l
+    for i in range(l+1,r+1):
+        if a[i]<x:
+            j+=1
+
+            a[i],a[j] = a[j],a[i]
+            if k>=j:
+                k+=1
+                a[i],a[k]=a[k],a[i]
+            else:
+                k+=1
+
+        elif a[i]==x:
+            k=k+1
+            a[i],a[k]=a[k],a[i]
+
+    a[l], a[j] = a[j], a[l]       
+
+    return [j , k]    
+
+def randomized_quick_sort(a, l, r):
+    m=[]
+    if l >= r:
+        return
+    k = random.randint(l, r)
+    a[l], a[k] = a[k], a[l]
+    #use partition3
+    m = partition3(a, l, r)
+    randomized_quick_sort(a, l, m[0]- 1)
+    randomized_quick_sort(a, m[1] + 1, r)
+
+
+def fast_count_segments(starts, ends, points):
+    cnt = [0] * len(points)
+    
+    a=0
+    temp={}
+    ray=[]
+    ray=points+starts+ends
+    for r in ray:
+        if ray.index(r)<len(points):
+            temp[r]='p'
+        elif ray.index(r)<len(points)+len(starts):
+            temp[r]='s'
+        elif ray.index(r)<len(ray):
+            temp[r]='e'
+    
+
+    randomized_quick_sort(ray,0,len(ray)-1)
+    for i in ray:
+        if temp[i]=='s':
+            a+=1
+        if temp[i]=='e':
+            a-=1
+        if temp[i]=='p':
+            cnt[points.index(i)]=a
+    return cnt        
+    
+        
+
+if __name__ == '__main__':
+    input = sys.stdin.read()
+    data = list(map(int, input.split()))
+    n = data[0]
+    m = data[1]
+    starts = data[2:2 * n + 2:2]
+    ends   = data[3:2 * n + 2:2]
+    points = data[2 * n + 2:]
+    #use fast_count_segments
+    cnt = fast_count_segments(starts, ends, points)
+    for x in cnt:
+        print(x, end=' ')
