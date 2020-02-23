@@ -1,0 +1,82 @@
+4 Longest Common Subsequence of Two Sequences
+Problem Introduction
+Compute the length of a longest common subsequence of two sequences.
+Problem Description
+Task. Given two sequences 𝐴 = (𝑎1, 𝑎2, . . . , 𝑎𝑛) and 𝐵 = (𝑏1, 𝑏2, . . . , 𝑏𝑚), find the length of their longest
+common subsequence, i.e., the largest non-negative integer 𝑝 such that there exist indices 1 ≤ 𝑖1 <
+𝑖2 < · · · < 𝑖𝑝 ≤ 𝑛 and 1 ≤ 𝑗1 < 𝑗2 < · · · < 𝑗𝑝 ≤ 𝑚, such that 𝑎𝑖1 = 𝑏𝑗1
+, . . . , 𝑎𝑖𝑝 = 𝑏𝑗𝑝
+.
+Input Format. First line: 𝑛. Second line: 𝑎1, 𝑎2, . . . , 𝑎𝑛. Third line: 𝑚. Fourth line: 𝑏1, 𝑏2, . . . , 𝑏𝑚.
+Constraints. 1 ≤ 𝑛, 𝑚 ≤ 100; −109 < 𝑎𝑖
+, 𝑏𝑖 < 109
+.
+Output Format. Output 𝑝.
+Sample 1.
+Input:
+3
+2 7 5
+2
+2 5
+Output:
+2
+A common subsequence of length 2 is (2, 5).
+Sample 2.
+Input:
+1
+7
+4
+1 2 3 4
+Output:
+0
+The two sequences do not share elements.
+Sample 3.
+Input:
+4
+2 7 8 3
+4
+5 2 8 7
+Output:
+2
+One common subsequence is (2, 7). Another one is (2, 8).
+
+
+# Uses python3
+import sys
+def lcs2(s, t):
+    a=len(s)
+    b=len(t)
+    d={}
+    count=0
+    for i in range(a+1):
+        d[i]={}
+        d[i][0]=0
+    for j in range(b+1):
+        d[0][j]=0
+    for j in range(1,b+1):
+        for i in range(1,a+1):
+        
+            if s[i-1]==t[j-1]:
+                d[i][j]=d[i-1][j-1]+1
+            elif d[i-1][j]>=d[i][j-1]:
+                d[i][j]=d[i-1][j]
+            else:
+                d[i][j]=d[i][j-1]
+           
+    return d[a][b]
+
+if __name__ == '__main__':
+    input = sys.stdin.read()
+    data = list(map(int, input.split()))
+
+    n = data[0]
+    data = data[1:]
+    a = data[:n]
+
+    data = data[n:]
+    m = data[0]
+    data = data[1:]
+    b = data[:m]
+
+    print(lcs2(a, b))
+
