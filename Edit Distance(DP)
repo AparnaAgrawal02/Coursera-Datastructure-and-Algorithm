@@ -1,0 +1,76 @@
+3 Edit Distance
+Problem Introduction
+The edit distance between two strings is the minimum number of operations (insertions, deletions, and
+substitutions of symbols) to transform one string into another. It is a measure of similarity of two strings.
+Edit distance has applications, for example, in computational biology, natural language processing, and spell
+checking. Your goal in this problem is to compute the edit distance between two strings.
+Problem Description
+Task. The goal of this problem is to implement the algorithm for computing the edit distance between two
+strings.
+Input Format. Each of the two lines of the input contains a string consisting of lower case latin letters.
+Constraints. The length of both strings is at least 1 and at most 100.
+Output Format. Output the edit distance between the given two strings.
+Sample 1.
+Input:
+ab
+ab
+Output:
+0
+Sample 2.
+Input:
+short
+ports
+Output:
+3
+An alignment of total cost 3:
+s h o r t −
+− p o r t s
+Sample 3.
+Input:
+editing
+distance
+Output:
+5
+An alignment of total cost 5:
+e d i − t i n g −
+− d i s t a n c e
+
+# Uses python3
+def edit_distance(s, t):
+    s1=[]
+    t1=[]
+    for i in s:
+        s1.append(i)
+    if '\r'in s1:    
+        s1.remove('\r')
+    
+    for i in t:
+        t1.append(i)
+    if '\r'in t1:        
+        t1.remove('\r')
+    a=len(s1)
+    b=len(t1)
+
+    
+    d={}
+    for i in range(a+1):
+        d[i]={}
+        d[i][0]=i
+
+    for j in range(b+1):
+        d[0][j]=j
+    for j in range(1,b+1):
+        for i in range(1,a+ 1):
+            insersion=d[i][j-1]+1
+            deletion=d[i-1][j]+1
+            match=d[i-1][j-1]
+            mismatch=d[i-1][j-1]+1
+            if s[i-1]==t[j-1]:
+                d[i][j]=min(insersion, deletion,match)
+                
+            if s[i-1]!=t[j-1]:
+                d[i][j]=min(insersion, deletion,mismatch)
+    return d[a][b]
+
+if __name__ == "__main__":
+    print(edit_distance(input(), input()))
