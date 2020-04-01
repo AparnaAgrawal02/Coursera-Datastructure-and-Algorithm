@@ -1,0 +1,77 @@
+Problem Introduction
+Given a sequence 𝑎1, . . . , 𝑎𝑛 of integers and an integer 𝑚 ≤ 𝑛, find the maximum among {𝑎𝑖
+, . . . , 𝑎𝑖+𝑚−1} for
+every 1 ≤ 𝑖 ≤ 𝑛 − 𝑚 + 1. A naive 𝑂(𝑛𝑚) algorithm for solving this problem scans each window separately.
+Your goal is to design an 𝑂(𝑛) algorithm.
+Problem Description
+Input Format. The first line contains an integer 𝑛, the second line contains 𝑛 integers 𝑎1, . . . , 𝑎𝑛 separated
+by spaces, the third line contains an integer 𝑚.
+Constraints. 1 ≤ 𝑛 ≤ 105
+, 1 ≤ 𝑚 ≤ 𝑛, 0 ≤ 𝑎𝑖 ≤ 105
+for all 1 ≤ 𝑖 ≤ 𝑛.
+Output Format. Output max{𝑎𝑖
+, . . . , 𝑎𝑖+𝑚−1} for every 1 ≤ 𝑖 ≤ 𝑛 − 𝑚 + 1.
+Time Limits.
+language C C++ Java Python C# Haskell JavaScript Ruby Scala
+time (sec) 1 1 1.5 5 1.5 2 5 5 3
+Memory Limit. 512MB.
+Sample 1.
+Input:
+8
+2 7 3 1 5 2 6 2
+4
+Output:
+7 7 5 6 6
+What to Do
+We give hints for three different solutions.
+1. Implement a queue using two stacks. Use a queue data structure for sliding a window through a sequence: for shifting a window one position to the right, pop the leftmost element of the queue and
+push a new element from the new window. A queue can be implemented using two stacks such that
+each queue operation takes constant time on average. Then, use your implementation of the stack with
+maximum.
+2. Preprocess block suffixes and prefixes. Partition the input sequence into blocks of length 𝑚 and precompute the maximum for every suffix and every prefix of each block. Afterwards, the maximum in
+each sliding window can be found by considering a suffix and a prefix of two consecutive blocks.
+3. Store relevant items in a dequeue. Use a double-ended queue (dequeue) to store elements of the current
+window. At the same time, store only relevant elements: before adding a new element drop all smaller
+elements.
+
+# python3
+
+
+def max_sliding_window_naive(sequence, m):
+    maximums = []
+    w=sequence[0:m]
+    t=[]
+    for r in range(len(w)):
+        
+            
+        while t and  w[r]>=w[t[-1]]:
+            t.pop()
+        t.append(r)     
+
+    maximums.append(sequence[t[0]])
+
+    for i in range(m,len(sequence)):
+        for r in range(len(t)):
+            if sequence[t[-1]]<=sequence[i]:
+                q=t.pop()
+            else:
+                break
+        
+        t.append(i)
+        
+        while(t[0]<=i-m):
+            t.pop(0)
+           
+        maximums.append(sequence[t[0]])
+        
+ 
+    return maximums
+
+if __name__ == '__main__':
+    n = int(input())
+    input_sequence = [int(i) for i in input().split()]
+    assert len(input_sequence) == n
+    window_size = int(input())
+
+    print(*max_sliding_window_naive(input_sequence, window_size))
+
