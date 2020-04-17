@@ -1,0 +1,118 @@
+3 Find pattern in text
+Problem Introduction
+In this problem, your goal is to implement the Rabin–Karp’s algorithm.
+Problem Description
+Task. In this problem your goal is to implement the Rabin–Karp’s algorithm for searching the given pattern
+in the given text.
+Input Format. There are two strings in the input: the pattern 𝑃 and the text 𝑇.
+Constraints. 1 ≤ |𝑃| ≤ |𝑇| ≤ 5 · 105
+. The total length of all occurrences of 𝑃 in 𝑇 doesn’t exceed 108
+. The
+pattern and the text contain only latin letters.
+Output Format. Print all the positions of the occurrences of 𝑃 in 𝑇 in the ascending order. Use 0-based
+indexing of positions in the the text 𝑇.
+Time Limits. C: 1 sec, C++: 1 sec, Java: 5 sec, Python: 5 sec. C#: 1.5 sec, Haskell: 2 sec, JavaScript: 3
+sec, Ruby: 3 sec, Scala: 3 sec.
+Memory Limit. 512MB.
+Sample 1.
+Input:
+aba
+abacaba
+Output:
+0 4
+Explanation:
+The pattern 𝑎𝑏𝑎 can be found in positions 0 (abacaba) and 4 (abacaba) of the text 𝑎𝑏𝑎𝑐𝑎𝑏𝑎.
+Sample 2.
+Input:
+Test
+testTesttesT
+Output:
+4
+Explanation:
+Pattern and text are case-sensitive in this problem. Pattern 𝑇 𝑒𝑠𝑡 can only be found in position 4 in
+the text 𝑡𝑒𝑠𝑡𝑇 𝑒𝑠𝑡𝑡𝑒𝑠𝑇.
+Sample 3.
+Input:
+aaaaa
+baaaaaaa
+Output:
+1 2 3
+Note that the occurrences of the pattern in the text can be overlapping, and that’s ok, you still need
+to output all of them.
+9
+Starter Files
+The starter solutions in C++, Java and Python3 read the input, apply the naive 𝑂(|𝑇||𝑃|) algorithm to
+this problem and write the output. You need to implement the Rabin–Karp’s algorithm instead of the naive
+algorithm and thus significantly speed up the solution. If you use other languages, you need to implement a
+solution from scratch.
+What to Do
+Implement the fast version of the Rabin–Karp’s algorithm from the lectures.
+Some hints based on the problems encountered by learners:
+∙ Beware of integer overflow. Use long long type in C++ and long type in Java where appropriate. Take
+everything (mod 𝑝) as soon as possible while computing something (mod 𝑝), so that the numbers are
+always between 0 and 𝑝 − 1.
+∙ Beware of taking negative numbers (mod 𝑝). In many programming languages, (−2)%5 ̸= 3%5. Thus
+you can compute the same hash values for two strings, but when you compare them, they appear to
+be different. To avoid this issue, you can use such construct in the code: 𝑥 ← ((𝑎%𝑝) + 𝑝)%𝑝 instead
+of just 𝑥 ← 𝑎%𝑝.
+∙ Use operator == in Python instead of implementing your own function AreEqual for strings, because
+built-in operator == will work much faster.
+∙ In C++, method substr of string creates a new string, uses additional memory and time for that,
+so use it carefully and avoid creating lots of new strings. When you need to compare pattern with
+a substring of text, do it without calling substr.
+∙ In Java, however, method substring does NOT create a new String. Avoid using new String where
+it is not needed, just use substring
+
+
+# python3
+import random
+def polyhash(s,pr,x):
+    ans=0
+
+    for r in reversed(s):
+        ans=(ans*x+ord(r))%pr
+    return ans    
+def read_input():
+    return (input().rstrip(), input().rstrip())
+
+def print_occurrences(output):
+    print(' '.join(map(str, output)))
+
+def precomputehashes(p, t):
+    x=99
+    pr=10000000000
+    h=[0]*(len(t)-len(p)+1)
+    s=t[len(t)-len(p):len(t)]
+    h[len(t)-len(p)]=polyhash(s,pr,x)
+    y=1
+    for i in range(0,len(p)):
+        y=(y*x)%pr
+        
+    i=len(t)-len(p)-1 
+    for  r in range(0,len(t)-len(p)):    
+        h[i]=(x*h[i+1]+ord(t[i])-y*ord(t[i+len(p)]))%pr
+        
+        i-=1
+    return h    
+def rabinkarp(p,t):
+    pr=10000000000
+    x=99
+    result=[]
+    phash=polyhash(p,pr,x)
+    h=precomputehashes(p,t)
+    
+    for i in range(0,len(t)-len(p)+1):
+        if phash!=h[i]:
+            continue
+        elif t[i:i+len(p)]==p:
+            result.append(i)
+     
+    return result            
+                
+        
+    
+
+if __name__ == '__main__':
+    
+    print_occurrences(rabinkarp(*read_input()))
+
