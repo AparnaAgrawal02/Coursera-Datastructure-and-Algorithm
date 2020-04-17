@@ -1,0 +1,137 @@
+Longest common substring
+Problem Introduction
+In the longest common substring problem one is given two strings 𝑠 and 𝑡 and the goal is to find a string 𝑤
+of maximal length that is a substring of both 𝑠 and 𝑡. This is a natural measure of similarity between two
+strings. The problem has applications in text comparison and compression as well as in bioinformatics.
+The problem can be seen as a special case of the edit distance problem (where only insertions and
+deletions are allowed). Hence, it can be solved in time 𝑂(|𝑠| · |𝑡|) using dynamic programming. Later in
+this specialization, we will learn highly non-trivial data structures for solving this problem in linear time
+𝑂(|𝑠| + |𝑡|). In this problem, your goal is to use hashing to solve it in almost linear time.
+Problem Description
+Input Format. Every line of the input contains two strings 𝑠 and 𝑡 consisting of lower case Latin letters.
+Constraints. The total length of all 𝑠’s as well as the total length of all 𝑡’s does not exceed 100 000.
+Output Format. For each pair of strings 𝑠 and 𝑡𝑖
+, find its longest common substring and specify it by
+outputting three integers: its starting position in 𝑠, its starting position in 𝑡 (both 0-based), and its
+length. More formally, output integers 0 ≤ 𝑖 < |𝑠|, 0 ≤ 𝑗 < |𝑡|, and 𝑙 ≥ 0 such that 𝑠𝑖𝑠𝑖+1 · · · 𝑠𝑖+𝑙−1 =
+𝑡𝑗 𝑡𝑗+1 · · ·𝑡𝑗+𝑙−1 and 𝑙 is maximal. (As usual, if there are many such triples with maximal 𝑙, output any
+of them.)
+Time Limits. C: 2 sec, C++: 2 sec, Java: 5 sec, Python: 15 sec. C#: 3 sec, Haskell: 4 sec, JavaScript: 10
+sec, Ruby: 10 sec, Scala: 10 sec.
+Memory Limit. 512MB.
+Sample 1.
+Input:
+cool toolbox
+aaa bb
+aabaa babbaab
+Output:
+1 1 3
+0 1 0
+0 4 3
+Explanation:
+The longest common substring of the first pair of strings is ool, it starts at the first position in toolbox
+and at the first position in cool. The strings from the second line do not share any non-empty common
+substrings (in this case, 𝑙 = 0 and one may output any indices 𝑖 and 𝑗). Finally, the last two strings
+share a substring aab that has length 3 and starts at position 0 in the first string and at position 4 in
+the second one. Note that for this pair of string one may output 2 3 3 as well.
+What to Do
+For every pair of strings 𝑠 and 𝑡, use binary search to find the length of the longest common substring. To
+check whether two strings have a common substring of length 𝑘,
+∙ precompute hash values of all substrings of length 𝑘 of 𝑠 and 𝑡;
+∙ make sure to use a few hash functions (but not just one) to reduce the probability of a collision;
+14
+∙ store hash values of all substrings of length 𝑘 of the string 𝑠 in a hash table; then, go through all
+substrings of length 𝑘 of the string 𝑡 and check whether the hash value of this substring is present in
+the hash table.
+
+# python3
+
+import sys
+
+
+def polyhash(string, prime, multiplyer):
+    ans = 0
+
+    for index in reversed(string):
+        ans = (ans*multiplyer+ord(index)) % prime
+    return ans
+
+
+def primecomputehashes(leng, text1, text2):
+    multiplyer = 99
+    prime = 8683317618811886495518194401279999999
+    prime1 = 263130836933693530167218012159999999
+
+    mult = 101
+    h = {}
+    hash1 = {}
+    h2 = {}
+    hash2 = {}
+    string = text1[len(text1)-leng:len(text1)]
+    string2 = text2[len(text2)-leng:len(text2)]
+    poly1=polyhash(string, prime, multiplyer)
+    h[poly1] = len(text1)-leng
+    poly2 = polyhash(string2, prime, multiplyer)
+    h2[poly2] = len(text2)-leng
+
+    poly4 = polyhash(string2, prime1, mult)
+    poly3=polyhash(string, prime1, mult)
+    hash1[poly3] = len(text1)-leng
+    hash2[poly4] = len(text2)-leng
+
+    y = 1
+    y1 = 1
+    y1 = pow(mult, leng, prime1)
+    y = pow(multiplyer, leng, prime)
+    index = len(text1)-leng-1
+    for index1 in range(0, len(text1)-leng):
+        poly1=(multiplyer*poly1+ord(text1[index]) -y * ord(text1[index+leng])) % prime
+        h[poly1] = index
+        poly3 = (mult*poly3+ord(text1[index]) -y1 * ord(text1[index+leng])) % prime1
+        hash1[poly3] = index
+        index -= 1
+    q = 0
+    if poly2 in h and poly4 in hash1:
+        if h2[poly2] == hash2[poly4] and h[poly2] == hash1[poly4]:
+            q = (h[poly2], h2[poly2])
+    else:
+        index = len(text2)-leng-1
+        for index1 in range(0, len(text2)-leng):
+            poly2= (multiplyer*poly2+ord(text2[index]) - y * ord(text2[index+leng])) % prime
+            h2[poly2]=index
+            poly4 = (mult*poly4+ord(text2[index]) -y1 * ord(text2[index+leng])) % prime1
+            hash2[poly4]=index
+            if poly2 in h and poly4 in hash1:
+                if h2[poly2] == hash2[poly4] and h[poly2] == hash1[poly4]:
+                    q = (h[poly2],h2[poly2] )
+                    break
+            index -= 1
+
+    if q != 0:
+        return [True, q]
+    else:
+        return [False]
+
+
+def solve(s1, s2):
+    l, r = 0, min(len(s1), len(s2))
+    while l <= r:
+        mid = l + (r-l)//2
+        z = primecomputehashes(mid, s1, s2)
+        if z[0]:
+            result = [z[1][0], z[1][1]]
+            l = mid + 1
+        else:
+            r = mid - 1
+
+    return [result[0], result[1], l-1]
+
+
+for line in sys.stdin.readlines():
+    s, t = line.split()
+    if len(s) > len(t):
+        ans = solve(t, s)
+        ans[0], ans[1] = ans[1], ans[0]
+    else:
+        ans = solve(s, t)
+    print(*ans)
