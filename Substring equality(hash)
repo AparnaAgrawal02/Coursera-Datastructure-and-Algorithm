@@ -1,0 +1,124 @@
+4 Substring equality
+Problem Introduction
+In this problem, you will use hashing to design an algorithm that is able to preprocess a given string 𝑠
+to answer any query of the form “are these two substrings of 𝑠 equal?” efficiently. This, in turn, is a basic
+building block in many string processing algorithms.
+Problem Description
+Input Format. The first line contains a string 𝑠 consisting of small Latin letters. The second line contains
+the number of queries 𝑞. Each of the next 𝑞 lines specifies a query by three integers 𝑎, 𝑏, and 𝑙.
+Constraints. 1 ≤ |𝑠| ≤ 500 000. 1 ≤ 𝑞 ≤ 100 000. 0 ≤ 𝑎, 𝑏 ≤ |𝑠| − 𝑙 (hence the indices 𝑎 and 𝑏 are 0-based).
+Output Format. For each query, output “Yes” if 𝑠𝑎𝑠𝑎+1. . .𝑠𝑎+𝑙−1 = 𝑠𝑏𝑠𝑏+1. . .𝑠𝑏+𝑙−1 are equal, and “No”
+otherwise.
+Time Limits. C: 1 sec, C++: 1 sec, Java: 2 sec, Python: 10 sec. C#: 1.5 sec, Haskell: 2 sec, JavaScript: 5
+sec, Ruby: 5 sec, Scala: 5 sec.
+Memory Limit. 512MB.
+Sample 1.
+Input:
+trololo
+4
+0 0 7
+2 4 3
+3 5 1
+1 3 2
+Output:
+Yes
+Yes
+Yes
+No
+0 0 7 → trololo = trololo
+2 4 3 → trololo = trololo
+3 5 1 → trololo = trololo
+1 3 2 → trololo ̸= trololo
+What to Do
+For a string 𝑡 = 𝑡0𝑡1 · · ·𝑡𝑚−1 of length 𝑚 and an integer 𝑥, define a polynomial hash function
+𝐻(𝑡) =
+𝑚∑︁−1
+𝑗=0
+𝑡𝑗𝑥
+𝑚−𝑗−1 = 𝑡0𝑥
+𝑚−1 + 𝑡1𝑥
+𝑚−2 + · · · + 𝑡𝑚−2𝑥 + 𝑡𝑚−1 .
+Let 𝑠𝑎𝑠𝑎+1 · · · 𝑠𝑎+𝑙−1 be a substring of the given string 𝑠 = 𝑠0𝑠1 · · · 𝑠𝑛−1. A nice property of the polynomial hash function 𝐻 is that 𝐻(𝑠𝑎𝑠𝑎+1 · · · 𝑠𝑎+𝑙−1) can be expressed through 𝐻(𝑠0𝑠1 · · · 𝑠𝑎+𝑙−1) and
+11
+𝐻(𝑠0𝑠1 · · · 𝑠𝑎−1), i.e., through hash values of two prefixes of 𝑠:
+𝐻(𝑠𝑎𝑠𝑎+1 · · · 𝑠𝑎+𝑙−1) = 𝑠𝑎𝑥
+𝑙−1 + 𝑠𝑎+1𝑥
+𝑙−2 + · · · + 𝑠𝑎+𝑙−1 =
+= 𝑠0𝑥
+𝑎+𝑙−1 + 𝑠1𝑥
+𝑎+𝑙−2 + · · · + 𝑠𝑎+𝑙−1−
+− 𝑥
+𝑙
+(𝑠0𝑥
+𝑎−1 + 𝑠1𝑥
+𝑎−2 + · · · + 𝑠𝑎−1) =
+= 𝐻(𝑠0𝑠1 · · · 𝑠𝑎+𝑙−1) − 𝑥
+𝑙𝐻(𝑠0𝑠1 · · · 𝑠𝑎−1)
+This leads us to the following natural idea: we precompute and store the hash values of all prefixes of 𝑠: let
+ℎ[0] = 0 and, for 1 ≤ 𝑖 ≤ 𝑛, let ℎ[𝑖] = 𝐻(𝑠0𝑠1 · · · 𝑠𝑖−1). Then, the identity above becomes
+𝐻(𝑠𝑎𝑠𝑎+1 · · · 𝑠𝑎+𝑙−1) = ℎ[𝑎 + 𝑙] − 𝑥
+𝑙ℎ[𝑎] .
+In other words, we are able to get the hash value of any substring of 𝑠 in just constant time! Clearly, if
+𝐻(𝑠𝑎𝑠𝑎+1 · · · 𝑠𝑎+𝑙−1) ̸= 𝐻(𝑠𝑏𝑠𝑏+1 · · · 𝑠𝑏+𝑙−1), then the corresponding two substrings (𝑠𝑎𝑠𝑎+1 · · · 𝑠𝑎+𝑙−1 and
+𝑠𝑏𝑠𝑏+1 · · · 𝑠𝑏+𝑙−1) are different. However, if the hash values are the same, it is still possible that the substrings
+are different — this is called a collision. Below, we discuss how to reduce the probability of a collision.
+Recall that in practice one never computes the exact value of a polynomial hash function: everything is
+computed modulo 𝑚 for some fixed integer 𝑚. This is done to ensure that all the computations are efficient
+and that the hash values are small enough. Recall also that when computing 𝐻(𝑠) mod 𝑚 it is important to
+take every intermediate step (rather then the final result) modulo 𝑚.
+It can be shown that if 𝑠1 and 𝑠2 are two different strings of length 𝑛 and 𝑚 is a prime integer, then the
+probability that 𝐻(𝑠1) mod 𝑚 = 𝐻(𝑠2) mod 𝑚 (over the choices of 0 ≤ 𝑥 ≤ 𝑚 − 1) is at most 𝑛
+𝑚 (roughly,
+this is because 𝐻(𝑠1) − 𝐻(𝑠2) is a non-zero polynomial of degree at most 𝑛 − 1 and hence can have at most
+𝑛 roots modulo 𝑚). To further reduce the probability of a collision, one may take two different modulus.
+Overall, this gives the following approach.
+1. Fix 𝑚1 = 109 + 7 and 𝑚2 = 109 + 9.
+2. Select a random 𝑥 from 1 to 109
+.
+3. Compute arrays ℎ1[0..𝑛] and ℎ2[0..𝑛]: ℎ1[0] = ℎ2[0] = 0 and, for 1 ≤ 𝑖 ≤ 𝑛, ℎ1[𝑖] = 𝐻(𝑠0 · · · 𝑠𝑖−1) mod
+𝑚1 and ℎ2[𝑖] = 𝐻(𝑠0 · · · 𝑠𝑖−1) mod 𝑚2. We illustrate this for ℎ1 below.
+allocate ℎ1[0..𝑛]
+ℎ1[0] ← 0
+for 𝑖 from 1 to 𝑛:
+ℎ1[𝑖] ← (𝑥 · ℎ1[𝑖 − 1] + 𝑠𝑖) mod 𝑚1
+4. For every query (𝑎, 𝑏, 𝑙):
+(a) Use precomputed hash values, to compute the hash values of the substrings 𝑠𝑎𝑠𝑎+1 · · · 𝑠𝑎+𝑙−1 and
+𝑠𝑏𝑠𝑏+1 · · · 𝑠𝑏+𝑙−1 modulo 𝑚1 and 𝑚2.
+(b) Output “Yes”, if
+𝐻(𝑠𝑎𝑠𝑎+1 · · · 𝑠𝑎+𝑙−1) mod 𝑚1 = 𝐻(𝑠𝑏𝑠𝑏+1 · · · 𝑠𝑏+𝑙−1) mod 𝑚1 and
+𝐻(𝑠𝑎𝑠𝑎+1 · · · 𝑠𝑎+𝑙−1) mod 𝑚2 = 𝐻(𝑠𝑏𝑠𝑏+1 · · · 𝑠𝑏+𝑙−1) mod 𝑚2 .
+(c) Otherwise, output “No”.
+Note that, in contrast to Karp–Rabin algorithm, we do not compare the substrings naively when their
+hashes coincide. The probability of this event is at most 𝑛
+𝑚1
+·
+𝑛
+𝑚2
+≤ 10−9
+. (In fact, for random strings the
+probability is even much smaller: 10−18. In this problem, the strings are not random, but the probability of
+collision is still very small.)
+x=99;# python3
+
+import sys
+
+	
+def ask(h1,h2, a, b, l):
+	return (h1[a+l]-pow(x,l,m1)*h1[a])%m1==(h1[b+l]-pow(x,l,m1)*h1[b])%m1 and (h2[a+l]-pow(x,l,m2)*h2[a])%m2==(h2[b+l]-pow(x,l,m2)*h2[b])%m2
+s = sys.stdin.readline()
+q = int(sys.stdin.readline())
+m1=10000000007
+m2=10000000009
+h1=[0]*(len(s)+1)
+h2=[0]*(len(s)+1)
+for i in range(1,len(s)+1):
+    h1[i]=(x*h1[i-1]+ord(s[i-1]))%m1
+    h2[i]=(x*h2[i-1]+ord(s[i-1]))%m2
+
+for i in range(q):
+	a, b, l = map(int, sys.stdin.readline().split())
+
+    
+	print("Yes" if ask(h1,h2,a, b, l) else "No")
+
+
