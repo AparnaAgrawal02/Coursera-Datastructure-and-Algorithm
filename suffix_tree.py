@@ -1,140 +1,109 @@
-"""1 Problem: Construct a Trie from a Collection of Patterns
+"""4 Problem: Construct the Suffix Tree of a String
 Problem Introduction
-Reads will form a collection of strings Patterns that we wish to match against a reference genome Text. For
-each string in Patterns, we will first find all its exact matches as a substring of Text (or conclude that it
-does not appear in Text). When hunting for the cause of a genetic disorder, we can immediately eliminate
-from consideration areas of the reference genome where exact matches occur.
-Multiple Pattern Matching Problem: Find all occurrences of a collection of patterns in a
-text.
-Input: A string Text and a collection Patterns containing (shorter) strings.
-Output: All starting positions in Text where a string from Patterns appears as a substring.
-To solve this problem, we will consolidate Patterns into a directed tree called a trie (pronounced “try”),
-which is written Trie(Patterns) and has the following properties.
-∙ The trie has a single root node with indegree 0, denoted root.
-∙ Each edge of Trie(Patterns) is labeled with a letter of the alphabet.
-∙ Edges leading out of a given node have distinct labels.
-∙ Every string in Patterns is spelled out by concatenating the letters along some path from the root
-downward.
-∙ Every path from the root to a leaf, or node with outdegree 0, spells a string from Patterns.
-The most obvious way to construct Trie(Patterns) is by iteratively adding each string from Patterns to the
-growing trie, as implemented by the following algorithm.
-TrieConstruction(Patterns)
-Trie ← a graph consisting of a single node root
-for each string Pattern in Patterns:
-currentNode ← root
-for 𝑖 from 0 to |Pattern| − 1:
-currentSymbol ← Pattern[𝑖]
-if there is an outgoing edge from currentNode with label currentSymbol:
-currentNode ← ending node of this edge
-else:
-add a new node newNode to Trie
-add a new edge from currentNode to newNode with label currentSymbol
-currentNode ← newNode
-return Trie
+Storing Trie(Patterns) requires a great deal of memory. So let’s process Text into a data structure instead.
+Our goal is to compare each string in Patterns against Text without needing to traverse Text from beginning
+to end. In more familiar terms, instead of packing Patterns onto a bus and riding the long distance down
+Text, our new data structure will be able to “teleport” each string in Patterns directly to its occurrences in
+Text.
+A suffix trie, denoted SuffixTrie(Text), is the trie formed from all suffixes of Text. From now on, we
+append the dollar-sign (“$”) to Text in order to mark the end of Text. We will also label each leaf of the
+resulting trie by the starting position of the suffix whose path through the trie ends at this leaf (using 0-based
+indexing). This way, when we arrive at a leaf, we will immediately know where this suffix came from in Text.
+However, the runtime and memory required to construct SuffixTrie(Text) are both equal to the combined
+length of all suffixes in Text. There are |Text| suffixes of Text, ranging in length from 1 to |Text| and having
+total length |Text| ·(|Text| + 1)/2, which is Θ(|Text|
+2
+). Thus, we need to reduce both the construction time
+and memory requirements of suffix tries to make them practical.
+Let’s not give up hope on suffix tries. We can reduce the number of edges in SuffixTrie(Text) by combining the edges on any non-branching path into a single edge. We then label this edge with the concatenation
+of symbols on the consolidated edges. The resulting data structure is called a suffix tree, written SuffixTree(Text).
+To match a single Pattern to Text, we thread Pattern into SuffixTree(Text) by the same process used for
+a suffix trie. Similarly to the suffix trie, we can use the leaf labels to find starting positions of successfully
+matched patterns.
+Suffix trees save memory because they do not need to store concatenated edge labels from each nonbranching path. For example, a suffix tree does not need ten bytes to store the edge labeled “mabananas$”
+in SuffixTree(“panamabananas$”); instead, it suffices to store a pointer to position 4 of “panamabananas$”,
+as well as the length of “mabananas$”. Furthermore, suffix trees can be constructed in linear time, without
+having to first construct the suffix trie! We will not ask you to implement this fast suffix tree construction
+algorithm because it is quite complex.
 Problem Description
-Task. Construct a trie from a collection of patterns.
-Input Format. An integer 𝑛 and a collection of strings Patterns = {𝑝1, . . . , 𝑝𝑛} (each string is given on a
-separate line).
-Constraints. 1 ≤ 𝑛 ≤ 100; 1 ≤ |𝑝𝑖
-| ≤ 100 for all 1 ≤ 𝑖 ≤ 𝑛; 𝑝𝑖
-’s contain only symbols A, C, G, T; no 𝑝𝑖
-is
-a prefix of 𝑝𝑗 for all 1 ≤ 𝑖 ̸= 𝑗 ≤ 𝑛.
-3
-Output Format. The adjacency list corresponding to Trie(Patterns), in the following format. If
-Trie(Patterns) has 𝑛 nodes, first label the root with 0 and then label the remaining nodes with the
-integers 1 through 𝑛−1 in any order you like. Each edge of the adjacency list of Trie(Patterns) will be
-encoded by a triple: the first two members of the triple must be the integers 𝑖, 𝑗 labeling the initial and
-terminal nodes of the edge, respectively; the third member of the triple must be the symbol 𝑐 labeling
-the edge; output each such triple in the format u->v:c (with no spaces) on a separate line.
+Task. Construct the suffix tree of a string.
+Input Format. A string Text ending with a “$” symbol.
+Constraints. 1 ≤ |Text| ≤ 5 000; except for the last symbol, Text contains symbols A, C, G, T only.
+Output Format. The strings labeling the edges of SuffixTree(Text) in any order.
 Time Limits.
 language C C++ Java Python C# Haskell JavaScript Ruby Scala
-time in seconds 0.5 0.5 2 2 0.75 1 2 2 4
+time in seconds 1 1 3 10 1.5 2 10 10 6
 Memory Limit. 512Mb.
+10
 Sample 1.
 Input:
-1
-ATA
+A$
 Output:
-0->1:A
-2->3:A
-1->2:T
+A$
+$
 Explanation:
-0
-1
-2
-3
-A
-T
-A
+1 0
+$ A$
 Sample 2.
 Input:
-3
-AT
-AG
-AC
+ACA$
 Output:
-0->1:A
-1->4:C
-1->3:G
-1->2:T
-Explanation:
-0
-1
-2
-T
-3
-G
-4
-C
+$
 A
-4
+$
+CA$
+CA$
+Explanation:
+3 1
+2 0
+$ A CA$
+$ CA$
+11
 Sample 3.
 Input:
-3
-ATAGA
-ATC
-GAT
+ATAAATG$
 Output:
-0->1:A
-1->2:T
-2->3:A
-3->4:G
-4->5:A
-2->6:C
-0->7:G
-7->8:A
-8->9:T
+AAATG$
+G$
+T
+ATG$
+TG$
+A
+A
+AAATG$
+G$
+T
+G$
+$
 Explanation:
-0
-1
-2
-3
-4
-5
+2 3 4 0
+1 5
+7 6
 A
-G
-A
-6
-C
+A T
 T
-A
-7
-8
-9
-T
-A
-G
+ATG$ TG$ G$ AAATG$
+AAATG$ G$
+$ G$
 Starter Files
 The starter solutions for this problem read the input data from the standard input, pass it to a blank
 procedure, and then write the result to the standard output. You are supposed to implement your algorithm
 in this blank procedure if you are using C++, Java, or Python3. For other programming languages, you need
-to implement a solution from scratch. Filename: trie
+to implement a solution from scratch. Filename: suffix_tree
 What To Do
-To solve this problem, it is enough to implement carefully the corresponding algorithm covered in the lectures."""
+You can construct a trie from all the suffixes of the initial string as in the first problem. Then you can
+“compress” it into the suffix tree by deleting all nodes of the trie with only one child, merging the incoming
+and the outgoing edge of such node into one edge, concatenating the edge labels. However, if you do this
+and also store the substrings as edge labels directly, this will be too slow and also use too much memory.
+Use the hint from the lecture to only store the pair (start, length) of the substring of text corresponding
+to the edge label instead of storing this substring itself. Also note that when you create an edge from a
+node to a leaf of the tree, you don’t need to go through the whole substring corresponding to this edge
+character-by-character, you already know the start and the length of the corresponding substring. If it’s still
+too slow, you’ll need to build the suffix tree directly without building the suffix trie first. To do that, you’ll
+need to do almost the same, but creating the nodes only when branching happens by breaking the existing
+edge in the middle.
 
-
-
+"""
 
 
 
